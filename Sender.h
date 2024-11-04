@@ -9,9 +9,3 @@ public:
 		
 };
 
-int main() {
-	boost::asio::io_context io_ctx;
-	tcp::acceptor acceptor(io_ctx, tcp::endpoint(tcp::v4(), 1337));
-	tcp::socket socket(io_ctx);
-	return 0;
-}

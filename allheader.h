@@ -4,6 +4,7 @@ using std::cout;
 using std::cin;
 using std::endl;
 #include <boost/asio/steady_timer.hpp>
+#include <atomic>
 #include <thread>
 #include <chrono>
 using namespace std::chrono_literals;
