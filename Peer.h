@@ -4,55 +4,23 @@
 class Peer {
 private:
 	string port;
-	tcp::resolver::results_type endpoints;
+	streambuf buffer_;
 public:
-	Peer(string port, string endpointhost) {
+	Peer(string port) {
 		setPort(port);
-		setEndpoints(endpointhost, port);
 	};
-	io_context io_ctx;
+	 
+	io_context io_ctx; 
 	string name;
 	tcp::socket socket{ io_ctx };
 	tcp::resolver resolver{ io_ctx };
 	void setPort(string portNumber) { port = portNumber; }
 
+	inline void startConnection();
 
-	void setEndpoints(string host, string port) {
-		endpoints = resolver.resolve(host, port);
-	}
-
-
-	void startConnection() {
-		io_ctx;
-		setPort(port);
-		int acceptorPort = stoi(port);
-		tcp::acceptor acceptor(io_ctx, tcp::endpoint(tcp::v4(), acceptorPort));
-		cout << "Hello! Please enter your handle: ";
-		string name;
-		getline(cin, name);
-		cout << "Hi " << name << "! Waiting for peer...\n";
-		tcp::socket socket(io_ctx);
-		acceptor.accept(socket);
-		cout << "Peer arrived! Chat away!\n";
-	}
-
-	void connectToSender() {
-		io_ctx;
-		resolver;
-		socket;
-		boost::asio::connect(socket, endpoints);
-		cout << "Please enter your name: ";
-		getline(cin, name);
-		cout << "Welcome " << name << "! \n";
-	}
+	inline void connectToSender();
 	
-	/*void sendMessage(string message) {
-		boost::system::error_code error;
-		cout << "\n" << name << ": ";
-		string clientMessage;
-		std::getline(cin, clientMessage);
-		clientMessage = "\n" + name + ": " + clientMessage;
-		boost::asio::write(socket, boost::asio::buffer(clientMessage), error);
-	}*/
+	inline void sendMessage();
 
+	inline void readMessage();
 };
