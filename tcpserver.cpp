@@ -3,23 +3,6 @@
 
 
 
-//int main(int argc, char** argv) {
-//	if (argc == 2) {
-//		string appName = argv[1];
-//		if (appName == "server") {
-//			server();
-//			return 0;
-//		}
-//		else if (appName == "client") {
-//			client();
-//			return 0;
-//		}
-//	}
-//	
-//	cout << "Byeeee" << std::endl;
-//	
-//}
-
 int main() {
 	cout << "Welcome to Chataway! Please select from the following: " << endl;
 	cout << "1. Host chat \n";
