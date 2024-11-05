@@ -10,13 +10,16 @@ void Peer::startConnection(){ // This sets up the P2P connection before running 
 	tcp::socket socket(io_ctx);
 	acceptor.accept(socket); //Wait for connection and store in socket
 	cout << "Peer arrived! Chat away!\n";
-	std::thread readThread(&Peer::readMessage, this);
-	std::thread sendThread(&Peer::sendMessage, this);
+	while (true) {
+		std::thread readThread(&Peer::readMessage, this);
+		std::thread sendThread(&Peer::sendMessage, this);
+		io_ctx.stop();
+		readThread.join();
+		sendThread.join();
+	}
 
 
-	io_ctx.stop();
-	readThread.join();
-	sendThread.join();
+	
 
 }
 
@@ -27,11 +30,13 @@ void Peer::connectToSender() { // This connects to existing P2P chat before runn
 	cout << "Please enter your name: ";
 	getline(cin, name);
 	cout << "Welcome " << name << "!\n";
-	std::thread readThread(&Peer::readMessage, this);
-	std::thread sendThread(&Peer::sendMessage, this);
-	io_ctx.stop();
-	readThread.join();
-	sendThread.join();
+	while (true) {
+		std::thread readThread(&Peer::readMessage, this);
+		std::thread sendThread(&Peer::sendMessage, this);
+		io_ctx.stop();
+		readThread.join();
+		sendThread.join();
+	}
 
 }
 
