@@ -408,6 +408,12 @@ FodyWeavers.xsd
 #Whatever these are
 *.vcxproj*
 
+# Security things
+*.pem
+*.csr
+*.crt
+*.key
+
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
