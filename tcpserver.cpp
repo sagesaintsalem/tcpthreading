@@ -1,25 +1,33 @@
-#include "Peer.cpp"
+#include "Peer.h"
+#include <iostream>
 
-
-
-
+// Main function allows user to choose between hosting and joining a chat
 int main() {
-	cout << "Welcome to Chataway! Please select from the following: " << endl;
-	cout << "1. Host chat \n";
-	cout << "2. Join chat \n";
-	int choice;
-	cin >> choice;
-	cin.ignore();
-	if (choice == 1) {
-		Peer server("1337");
-		server.startConnection();
-	}
-	else if (choice == 2) {
-		Peer client("1337");
-		client.connectToSender();
-	}
-	else {
-		cout << "Key not found. Ending program. \n";
-	}
+    std::string port;
+    std::cout << "Enter port number: ";
+    std::cin >> port;
+    std::cin.ignore();
 
+    int choice;
+    std::cout << "Welcome to Chataway! Select:\n1. Host chat\n2. Join chat\n";
+    std::cin >> choice;
+    std::cin.ignore();
+
+    Peer peer(port);
+
+    if (choice == 1) {
+        peer.startConnection(); // Start as host
+    }
+    else if (choice == 2) {
+        std::string host_ip;
+        std::cout << "Enter host IP address: ";
+        std::cin >> host_ip;
+        std::cin.ignore();
+        peer.connectToSender(host_ip); // Connect to host as client
+    }
+    else {
+        std::cerr << "Invalid choice. Exiting.\n";
+    }
+
+    return 0;
 }

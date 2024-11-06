@@ -1,65 +1,69 @@
-
 #include "Peer.h"
+#include "allheader.h"
+#include <mutex>
 
-void Peer::startConnection(){ // This sets up the P2P connection before running readMessage and sendMessage simultaneously.
-	int acceptorPort = stoi(port); //Converts port string to int because tcp::endpoint only accepts int values as a second parameter.
-	tcp::acceptor acceptor(io_ctx, tcp::endpoint(tcp::v4(), acceptorPort)); //Accepts connections using IPv4 TCP protocol.
-	cout << "Hello! Please enter your handle: ";
-	getline(cin, name);
-	cout << "Hi " << name << "! Waiting for peer...\n";
-	tcp::socket socket(io_ctx);
-	acceptor.accept(socket); //Wait for connection and store in socket
-	cout << "Peer arrived! Chat away!\n";
-	while (true) {
-		std::thread readThread(&Peer::readMessage, this);
-		std::thread sendThread(&Peer::sendMessage, this);
-		io_ctx.stop();
-		readThread.join();
-		sendThread.join();
-	}
+std::mutex cout_mutex;  // Mutex for thread-safe output
 
+// Constructor initializes port and socket
+Peer::Peer(std::string port) : port(port), socket(io_ctx) {}
 
-	
+// This sets up the P2P connection before running readMessage and sendMessage simultaneously
+void Peer::startConnection() {  // Host function
+    tcp::acceptor acceptor(io_ctx, tcp::endpoint(tcp::v4(), std::stoi(port)));
+    std::cout << "Hello! Enter your name: ";
+    std::getline(std::cin, name);
+    std::cout << "Hi " << name << "! Waiting for peer on port " << port << "...\n";
 
+    acceptor.accept(socket); // Accepts connection from client
+    std::cout << "Peer connected! Start chatting...\n";
+
+    std::thread readThread(&Peer::readMessage, this);  // Thread for reading messages
+    std::thread sendThread(&Peer::sendMessage, this);  // Thread for sending messages
+
+    readThread.join();
+    sendThread.join();
 }
 
+// This connects to an existing P2P chat as a client
+void Peer::connectToSender(const string& host_ip) {  // Client function
+    std::cout << "Enter your name: ";
+    std::getline(std::cin, name);
 
-void Peer::connectToSender() { // This connects to existing P2P chat before running readMessage and sendMessage simultaneously.
-	tcp::resolver::results_type endpoints = resolver.resolve("127.0.0.1", port); //Resolves host and service names into a list of endpoint entries.
-	connect(socket, endpoints); // Connects to socket.
-	cout << "Please enter your name: ";
-	getline(cin, name);
-	cout << "Welcome " << name << "!\n";
-	while (true) {
-		std::thread readThread(&Peer::readMessage, this);
-		std::thread sendThread(&Peer::sendMessage, this);
-		io_ctx.stop();
-		readThread.join();
-		sendThread.join();
-	}
+    auto endpoints = resolver.resolve(host_ip, port);
+    boost::asio::connect(socket, endpoints); // Connect to the host
+    std::cout << "Connected to host at " << host_ip << " on port " << port << ". Start chatting...\n";
 
+    std::thread readThread(&Peer::readMessage, this);  // Thread for reading messages
+    std::thread sendThread(&Peer::sendMessage, this);  // Thread for sending messages
+
+    readThread.join();
+    sendThread.join();
 }
 
-
+// Handles sending messages with user's name as a prefix
 void Peer::sendMessage() {
-	cout << "\n" << Peer::name << ": ";
-	string message;
-	std::getline(cin, message);
-	message = "\n" + name + ": " + message + "\n";
-	auto message_pointer = std::make_shared<string>(message);
-	async_write(socket, buffer(*message_pointer), [message_pointer](boost::system::error_code error, size_t) {
-		if (error) {
-			cout << "Error sending message" << endl;
-		}
-		});
+    while (true) {
+        std::string message;
+        std::getline(std::cin, message);
+
+        {
+            std::lock_guard<std::mutex> lock(cout_mutex);
+            message = name + ": " + message + "\n";  // Format message with username
+            boost::asio::write(socket, boost::asio::buffer(message));
+        }
+    }
 }
 
+// Handles receiving messages from the peer
 void Peer::readMessage() {
-	async_read_until(socket, buffer_, "\n", [this](boost::system::error_code error, size_t len) {
-		std::istream stream(&buffer_);
-		string message;
-		getline(stream, message);
-		buffer_.consume(len);
-		readMessage();
-		});
+    while (true) {
+        boost::asio::streambuf buffer;
+        boost::asio::read_until(socket, buffer, "\n");
+        std::istream stream(&buffer);
+        std::string message;
+        std::getline(stream, message);
+
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        std::cout << message << std::endl; // Print received message
+    }
 }

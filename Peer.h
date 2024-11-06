@@ -1,26 +1,21 @@
 #pragma once
 #include "allheader.h"
 
+// Peer class handles the functionality of the host and client for P2P communication
 class Peer {
-private:
-	string port;
-	streambuf buffer_; 
 public:
-	Peer(string port) {
-		setPort(port);
-	};
-	 
-	io_context io_ctx; // Provides input/output functionality.
-	string name;
-	tcp::socket socket{ io_ctx };
-	tcp::resolver resolver{ io_ctx }; // Connects to existing connection.
-	void setPort(string portNumber) { port = portNumber; } // Sets the port number for use in startConnection and connectToSender.
+    Peer(string port);
 
-	inline void startConnection(); //Body of this function and the next three are in Peer.cpp.
+    void startConnection();  // Host
+    void connectToSender(const string& host_ip);  // Client
+    void sendMessage();
+    void readMessage();
 
-	inline void connectToSender();
-	
-	inline void sendMessage();
-
-	inline void readMessage();
+private:
+    string port; // Port number for connection
+    string name; // User's handle or name
+    io_context io_ctx; // Provides input/output functionality
+    tcp::socket socket{ io_ctx };
+    tcp::resolver resolver{ io_ctx };
+    streambuf buffer;
 };
