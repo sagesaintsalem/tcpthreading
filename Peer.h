@@ -18,6 +18,5 @@ private:
     tcp::socket socket{ io_ctx };
     tcp::resolver resolver{io_ctx};
     streambuf buffer;
-    ssl::context ssl_ctx;
-    //ssl::stream<tcp::socket> ssl_sock;
+
 };
