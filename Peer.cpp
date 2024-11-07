@@ -15,8 +15,8 @@ void Peer::startConnection() {  // Host function
 
     // This loads up the relevant SSL files
     try {
-        ssl_ctx.use_certificate_chain_file("tcpdomain.pem");  // Server certificate
-        ssl_ctx.use_private_key_file("tcpkey.pem", ssl::context::pem);  // Server private key
+        ssl_ctx.use_certificate_chain_file("tcpdomain.pem");  // Server certificate, omitted by .gitignore for security reasons.
+        ssl_ctx.use_private_key_file("tcpkey.pem", ssl::context::pem);  // Server private key omitted by .gitignore for security reasons.
         ssl_ctx.set_verify_mode(ssl::verify_none);  // No verification for simplicity
     }
     catch (std::exception& sslerror) {
@@ -27,9 +27,6 @@ void Peer::startConnection() {  // Host function
     cout << "Hello! Enter your name: ";
     getline(cin, name);
     cout << "Hi " << name << "! Waiting for peer on port " << port << "...\n";
-
-    /*acceptor.accept(ssl_sock.lowest_layer());
-    cout << "Accepted! \n";*/
 
 
     // Accepts connection from client, returns error message if unsuccessful
@@ -46,7 +43,7 @@ void Peer::startConnection() {  // Host function
     }
 
 
-    //ssl_sock.handshake(ssl::stream_base::server);
+    //ssl_sock.handshake(ssl::stream_base::server); //This line causes a runtime error
 
     cout << "Attempting handshake...\n";
     // This starts the handshake from the server side
@@ -79,8 +76,8 @@ void Peer::connectToSender(const string& host_ip) {  // Client function
 
     // This loads up the relevant SSL files
     try {
-        ssl_ctx.use_certificate_chain_file("tcpdomain.pem");  // Certificate
-        ssl_ctx.use_private_key_file("tcpkey.pem", ssl::context::pem);  // Private key
+        ssl_ctx.use_certificate_chain_file("tcpdomain.pem");  // Certificate, omitted by .gitignore for security reasons.
+        ssl_ctx.use_private_key_file("tcpkey.pem", ssl::context::pem);  // Private key, omitted by .gitignore for security reasons.
         ssl_ctx.set_verify_mode(ssl::verify_none);  // No verification for simplicity
     }
     catch (std::exception& sslerror) {
@@ -94,7 +91,6 @@ void Peer::connectToSender(const string& host_ip) {  // Client function
     auto endpoints = resolver.resolve(host_ip, port);
 
     cout << "Connecting...\n";
-    //connect(ssl_sock.lowest_layer(), endpoints);
 
     // Connects to the server, returns an error message if unsuccessful
     try {
@@ -107,7 +103,7 @@ void Peer::connectToSender(const string& host_ip) {  // Client function
 
     }
 
-    //ssl_sock.handshake(ssl::stream_base::client);
+    //ssl_sock.handshake(ssl::stream_base::client); //This line causes a runtime error.
 
     cout << "Attempting handshake...\n";
     // This starts the handshake from the client side.
