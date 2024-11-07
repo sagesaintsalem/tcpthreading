@@ -13,6 +13,7 @@ Peer::Peer(string port) : port(port), ssl_sock(io_ctx, ssl_ctx) {}
 void Peer::startConnection() {  // Host function
     ssl_ctx.set_default_verify_paths();
 
+    // This loads up the relevant SSL files
     try {
         ssl_ctx.use_certificate_chain_file("tcpdomain.pem");  // Server certificate
         ssl_ctx.use_private_key_file("tcpkey.pem", ssl::context::pem);  // Server private key
@@ -29,7 +30,9 @@ void Peer::startConnection() {  // Host function
 
     /*acceptor.accept(ssl_sock.lowest_layer());
     cout << "Accepted! \n";*/
-    // Accepts connection from client
+
+
+    // Accepts connection from client, returns error message if unsuccessful
 
    try {
         acceptor.accept(ssl_sock.lowest_layer());
@@ -46,10 +49,11 @@ void Peer::startConnection() {  // Host function
     //ssl_sock.handshake(ssl::stream_base::server);
 
     cout << "Attempting handshake...\n";
+    // This starts the handshake from the server side
     ssl_sock.async_handshake(ssl::stream_base::server, [this](const boost::system::error_code& error) {
         if (error) {
             std::cerr << "Handshake failed: " << error.message() << endl;
-            return;
+            //If handshake doesn't work, error message shows on screen
         }
         else {
             cout << "Peer connected! Start chatting...\n";
@@ -73,6 +77,7 @@ void Peer::startConnection() {  // Host function
 void Peer::connectToSender(const string& host_ip) {  // Client function
     ssl_ctx.set_default_verify_paths();
 
+    // This loads up the relevant SSL files
     try {
         ssl_ctx.use_certificate_chain_file("tcpdomain.pem");  // Certificate
         ssl_ctx.use_private_key_file("tcpkey.pem", ssl::context::pem);  // Private key
@@ -91,6 +96,7 @@ void Peer::connectToSender(const string& host_ip) {  // Client function
     cout << "Connecting...\n";
     //connect(ssl_sock.lowest_layer(), endpoints);
 
+    // Connects to the server, returns an error message if unsuccessful
     try {
         connect(ssl_sock.lowest_layer(), endpoints);
         cout << "Connected! \n";
@@ -104,10 +110,12 @@ void Peer::connectToSender(const string& host_ip) {  // Client function
     //ssl_sock.handshake(ssl::stream_base::client);
 
     cout << "Attempting handshake...\n";
+    // This starts the handshake from the client side.
     ssl_sock.async_handshake(ssl::stream_base::client, [this](const boost::system::error_code& error) {
         if (error) {
             std::cerr << "Handshake failed: " << error.message() << endl;
-            return;
+            //If handshake doesn't work, error message shows on screen
+
         }
         else {
             cout << "Peer connected! Start chatting...\n";
