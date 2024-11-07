@@ -27,11 +27,25 @@ void Peer::startConnection() {  // Host function
     getline(cin, name);
     cout << "Hi " << name << "! Waiting for peer on port " << port << "...\n";
 
-    acceptor.accept(ssl_sock.lowest_layer()); // Accepts connection from client
+    /*acceptor.accept(ssl_sock.lowest_layer());
+    cout << "Accepted! \n";*/
+    // Accepts connection from client
+
+   try {
+        acceptor.accept(ssl_sock.lowest_layer());
+        cout << "Accepted! \n";
+
+        
+    }
+    catch (const std::exception& error) {
+        std::cerr << "Accept failed: " << error.what() << endl;
+
+    }
+
 
     //ssl_sock.handshake(ssl::stream_base::server);
 
-
+    cout << "Attempting handshake...\n";
     ssl_sock.async_handshake(ssl::stream_base::server, [this](const boost::system::error_code& error) {
         if (error) {
             std::cerr << "Handshake failed: " << error.message() << endl;
@@ -39,10 +53,11 @@ void Peer::startConnection() {  // Host function
         }
         else {
             cout << "Peer connected! Start chatting...\n";
-            
+
         }
-        
+
         });
+    
     
     std::thread readThread(&Peer::readMessage, this);  // Thread for reading messages
     std::thread sendThread(&Peer::sendMessage, this);  // Thread for sending messages
@@ -70,12 +85,25 @@ void Peer::connectToSender(const string& host_ip) {  // Client function
     cout << "Enter your name: ";
     getline(std::cin, name);
 
+    cout << "Resolving...\n";
     auto endpoints = resolver.resolve(host_ip, port);
 
-    connect(ssl_sock.lowest_layer(), endpoints );
+    cout << "Connecting...\n";
+    //connect(ssl_sock.lowest_layer(), endpoints);
+
+    try {
+        connect(ssl_sock.lowest_layer(), endpoints);
+        cout << "Connected! \n";
+
+    }
+    catch (const std::exception& error) {
+        std::cerr << "Connect failed: " << error.what() << endl;
+
+    }
 
     //ssl_sock.handshake(ssl::stream_base::client);
 
+    cout << "Attempting handshake...\n";
     ssl_sock.async_handshake(ssl::stream_base::client, [this](const boost::system::error_code& error) {
         if (error) {
             std::cerr << "Handshake failed: " << error.message() << endl;
@@ -106,7 +134,7 @@ void Peer::sendMessage() {
         {
             std::lock_guard<std::mutex> lock(cout_mutex);
             message = name + ": " + message + "\n";  // Format message with username
-            boost::asio::write(socket, boost::asio::buffer(message));
+            boost::asio::write(ssl_sock, boost::asio::buffer(message));
         }
     }
 }
@@ -115,7 +143,7 @@ void Peer::sendMessage() {
 void Peer::readMessage() {
     while (true) {
         streambuf buffer;
-        boost::asio::read_until(socket, buffer, "\n");
+        boost::asio::read_until(ssl_sock, buffer, "\n");
         std::istream stream(&buffer);
         string message;
         getline(stream, message);

@@ -15,7 +15,7 @@ private:
     string port; // Port number for connection
     string name; // User's handle or name
     io_context io_ctx; // Provides input/output functionality
-    tcp::socket socket{ io_ctx };
+    //tcp::socket socket{ io_ctx };
     tcp::resolver resolver{io_ctx};
     streambuf buffer;
     ssl::context ssl_ctx{ ssl::context::tlsv12 };
