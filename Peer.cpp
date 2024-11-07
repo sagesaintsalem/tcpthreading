@@ -5,13 +5,12 @@
 std::mutex cout_mutex;  // Mutex for thread-safe output
 
 // Constructor initializes port and socket
-Peer::Peer(string port) : port(port), socket(io_ctx) {}
+Peer::Peer(string port) : port(port), ssl_sock(io_ctx, ssl_ctx) {}
     
 
 
 // This sets up the P2P connection before running readMessage and sendMessage simultaneously
 void Peer::startConnection() {  // Host function
-    ssl::context ssl_ctx(ssl::context::tlsv12);
     ssl_ctx.set_default_verify_paths();
 
     try {
@@ -28,17 +27,12 @@ void Peer::startConnection() {  // Host function
     getline(cin, name);
     cout << "Hi " << name << "! Waiting for peer on port " << port << "...\n";
 
-    acceptor.accept(socket); // Accepts connection from client
-
-    // acceptor.accept(ssl_sock); //.accept doesn't accept ssl stream objects.
-
-
-    ssl::stream<ip::tcp::socket>ssl_sock(std::move(socket), ssl_ctx);
+    acceptor.accept(ssl_sock.lowest_layer()); // Accepts connection from client
 
     //ssl_sock.handshake(ssl::stream_base::server);
 
 
-    ssl_sock.async_handshake(ssl::stream_base::server, [this, &ssl_sock](const boost::system::error_code& error) {
+    ssl_sock.async_handshake(ssl::stream_base::server, [this](const boost::system::error_code& error) {
         if (error) {
             std::cerr << "Handshake failed: " << error.message() << endl;
             return;
@@ -62,7 +56,6 @@ void Peer::startConnection() {  // Host function
 
 // This connects to an existing P2P chat as a client
 void Peer::connectToSender(const string& host_ip) {  // Client function
-    ssl::context ssl_ctx(ssl::context::tlsv12);
     ssl_ctx.set_default_verify_paths();
 
     try {
@@ -78,15 +71,12 @@ void Peer::connectToSender(const string& host_ip) {  // Client function
     getline(std::cin, name);
 
     auto endpoints = resolver.resolve(host_ip, port);
-    /*connect(socket, endpoints);*/ // Connect to the host
 
-    ssl::stream<ip::tcp::socket>ssl_sock(std::move(socket), ssl_ctx); //Wrap socket in ssl stream
-
-    connect(ssl_sock.lowest_layer(), endpoints);
+    connect(ssl_sock.lowest_layer(), endpoints );
 
     //ssl_sock.handshake(ssl::stream_base::client);
 
-    ssl_sock.async_handshake(ssl::stream_base::client, [this, &ssl_sock](const boost::system::error_code& error) {
+    ssl_sock.async_handshake(ssl::stream_base::client, [this](const boost::system::error_code& error) {
         if (error) {
             std::cerr << "Handshake failed: " << error.message() << endl;
             return;
